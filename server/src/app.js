@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const xss = require('xss-clean');
@@ -15,6 +16,14 @@ const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 
 const app = express();
+
+//----------------------------------------------------------------------
+// Serve static public files
+
+app.use(express.static(path.join(__dirname, '../client/build')));
+app.use(express.static(path.join(__dirname, './public')));
+
+//----------------------------------------------------------------------
 
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
@@ -52,6 +61,23 @@ if (config.env === 'production') {
 
 // v1 api routes
 app.use('/v1', routes);
+
+// Serve static files for any other GET route that is not an API route
+
+// manages non existant url so react router can handle it and serve index.html on root route all the other routes are clientside routes of SPA
+app.get('/*', (req, res) => {
+  switch (config.env) {
+    case 'development':
+      res.redirect('http://localhost:3000/');
+      break;
+    case 'production':
+      res.sendFile(path.resolve(__dirname, '../client/build/index.html'));
+      break;
+    default:
+      res.redirect('http://localhost:3000/');
+      break;
+  }
+});
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {

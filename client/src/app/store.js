@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import testReducer from '../features/test/test.slice'
-import { testApi } from '../services/test'
+import { testApi } from '../services'
 
 export const store = configureStore({
   reducer: {
