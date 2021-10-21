@@ -17,11 +17,11 @@ export const useRefreshTokensPolling = () => {
     // ISSUE NEW TOKENS EVERY 30 MINUTES
     if (expireTime <= 0) {
       refreshTokens()
-      interval = setInterval(refreshTokens, 30 * 60 * 1000)
+      interval = setInterval(refreshTokens, 1 * 60 * 1000)
     } else {
       setTimeout(() => {
         refreshTokens()
-        interval = setInterval(refreshTokens, 30 * 60 * 1000)
+        interval = setInterval(refreshTokens, 1 * 60 * 1000)
       }, expireTime)
     }
 

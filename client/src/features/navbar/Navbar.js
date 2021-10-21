@@ -13,12 +13,14 @@ const Navbar = () => {
     logout,
     { data: logoutData, isLoading: logoutIsLoading, error: logoutError },
   ] = useLogoutMutation()
+
+  console.log('AUTH', user, checkAuthError)
   return (
     <div>
       {!checkAuthError ? (
         <>
           <button onClick={logout}>LOGOUT</button>
-          <h5>Welcome {user.name}</h5>
+          <h5>Welcome {user?.name}</h5>
         </>
       ) : (
         <>
