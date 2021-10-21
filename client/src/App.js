@@ -1,29 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import './App.css'
-import Test from './features/test/Test'
-import { useGetUserQuery } from './services'
-import { convertFormdataEntriesToObject } from './utils'
+import { Switch } from 'react-router-dom'
+import Navbar from './features/navbar/Navbar'
+import { useRefreshTokensPolling } from './hooks'
+
+import { checkAccessTokenTime, isRefreshTokenValid } from './utils'
+import AuthRoute from './components/authroute/AuthRoute.js'
+import Login from './features/auth/Login'
+import Register from './features/auth/Register'
 
 function App() {
-  const [id, setId] = useState('')
-  const [isSkip, setIsSkip] = useState(true)
-  const { user, error, isLoading, refetch } = useGetUserQuery(id, {
-    skip: isSkip,
-  })
-  console.log(id)
+  useRefreshTokensPolling()
+
   return (
     <div className="App">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          setIsSkip(false)
-          refetch(convertFormdataEntriesToObject(e.target))
-        }}
-      >
-        <input value={id} onChange={(e) => setId(e.target.value)} />
-        <input type="submit" />
-      </form>
-      <Test />
+      <Navbar />
+      <Switch>
+        <AuthRoute type="guest" exact path="/register">
+          <Register />
+        </AuthRoute>
+        <AuthRoute type="guest" exact path="/login">
+          <Login />
+        </AuthRoute>
+        <AuthRoute type="pruvate" exact path="/user"></AuthRoute>
+      </Switch>
     </div>
   )
 }

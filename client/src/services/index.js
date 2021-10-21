@@ -1,25 +1,48 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-
-const retrieveToken = () => {
-  return localStorage.getItem('token')
-}
+import {
+  retrieveAccessToken,
+  retrieveRefreshToken,
+  saveTokens,
+  wipeTokensFromStorage,
+} from '../utils'
 
 // Define a service using a base URL and expected endpoints
-export const testApi = createApi({
-  reducerPath: 'testApi',
+export const authApi = createApi({
+  reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'v1/' }),
   endpoints: (builder) => ({
-    getUser: builder.query({
-      query: (id) => {
-        const bearer = 'Bearer ' + retrieveToken()
+    checkAuth: builder.query({
+      // note: an optional `queryFn` may be used in place of `query`
+      query: () => {
+        const token = retrieveAccessToken()
+        const bearer = 'Bearer ' + token
         return {
-          url: `users/${id}`,
+          url: 'auth/check-auth',
           method: 'GET',
           headers: {
             Authorization: bearer,
           },
         }
       },
+      providesTags: ['User'],
+    }),
+    refreshTokens: builder.mutation({
+      // note: an optional `queryFn` may be used in place of `query`
+      query: () => {
+        const refreshToken = retrieveRefreshToken()
+        console.log('REFRESH TOKEN MUTATION', refreshToken)
+        return {
+          url: `auth/refresh-tokens`,
+          method: 'POST',
+          body: { refreshToken },
+        }
+      },
+      transformResponse: (response) => {
+        console.log('NEW TOKENS AFTER REFRESH MUTATION', response)
+        /* if (response.access && response.refresh) */ saveTokens(response)
+        return response
+      },
+      invalidatesTags: ['User'],
     }),
     register: builder.mutation({
       // note: an optional `queryFn` may be used in place of `query`
@@ -29,12 +52,13 @@ export const testApi = createApi({
           url: `auth/register`,
           method: 'POST',
           body: { email, password, name },
-          transform: (response) => {
-            console.log(response)
-            return response
-          },
         }
       },
+      transformResponse: (response) => {
+        if (response.tokens) saveTokens(response.tokens)
+        return response
+      },
+      invalidatesTags: ['User'],
     }),
     login: builder.mutation({
       // note: an optional `queryFn` may be used in place of `query`
@@ -44,11 +68,27 @@ export const testApi = createApi({
         body: { email, password },
       }),
       transformResponse: (response) => {
-        console.log(response)
-        if (response.tokens)
-          localStorage.setItem('token', response.tokens.access.token)
+        if (response.tokens) saveTokens(response.tokens)
         return response
       },
+      invalidatesTags: ['User'],
+    }),
+    logout: builder.mutation({
+      // note: an optional `queryFn` may be used in place of `query`
+      query: () => {
+        const refreshToken = retrieveRefreshToken()
+
+        return {
+          url: `auth/logout`,
+          method: 'POST',
+          body: { refreshToken },
+        }
+      },
+      transformResponse: (response) => {
+        wipeTokensFromStorage()
+        return response
+      },
+      invalidatesTags: ['User'],
     }),
   }),
 })
@@ -57,7 +97,9 @@ export const testApi = createApi({
 // auto-generated based on the defined endpoints
 
 export const {
-  useGetUserQuery,
+  useCheckAuthQuery,
   useLoginMutation,
   useRegisterMutation,
-} = testApi
+  useRefreshTokensMutation,
+  useLogoutMutation,
+} = authApi
