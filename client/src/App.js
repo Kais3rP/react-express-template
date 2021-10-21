@@ -5,7 +5,7 @@ import Navbar from './features/navbar/Navbar'
 import { useRefreshTokensPolling } from './hooks'
 
 import { checkAccessTokenTime, isRefreshTokenValid } from './utils'
-import AuthRoute from './components/authroute/AuthRoute.js'
+import AuthRoute from './components/authroute/AuthRoute'
 import Login from './features/auth/Login'
 import Register from './features/auth/Register'
 
